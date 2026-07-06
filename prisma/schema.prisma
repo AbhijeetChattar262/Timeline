@@ -1,0 +1,154 @@
+// Prisma schema — structured, relational facts for the Timeline project.
+// Narrative prose, theme tokens, and media metadata live in MongoDB instead (see src/lib/db/models).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProvenanceTag {
+  itihasa // epic / legendary material
+  record // archival or historical record
+  observed // scientific fact
+}
+
+enum SourceType {
+  primary
+  secondary
+  archival
+}
+
+enum EraStatus {
+  draft
+  published
+}
+
+model Era {
+  id            Int       @id @default(autoincrement())
+  slug          String    @unique
+  name          String
+  subtitle      String?
+  startYear     String? // text: BCE ranges and "traditional c. ..." labels aren't clean integers
+  endYear       String?
+  sequenceOrder Int
+  status        EraStatus @default(draft)
+
+  figures        Figure[]
+  locations      Location[]
+  timelineEvents TimelineEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Figure {
+  id            Int           @id @default(autoincrement())
+  era           Era           @relation(fields: [eraId], references: [id], onDelete: Cascade)
+  eraId         Int
+  slug          String
+  name          String
+  epithet       String?
+  role          String?
+  summary       String        @db.Text
+  sequenceOrder Int
+  provenanceTag ProvenanceTag
+
+  events  FigureEvent[]
+  sources FigureSource[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eraId, slug])
+}
+
+model Location {
+  id          Int     @id @default(autoincrement())
+  era         Era     @relation(fields: [eraId], references: [id], onDelete: Cascade)
+  eraId       Int
+  slug        String
+  name        String
+  modernName  String?
+  latitude    Float?
+  longitude   Float?
+  description String? @db.Text
+
+  events TimelineEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eraId, slug])
+}
+
+model TimelineEvent {
+  id            Int           @id @default(autoincrement())
+  era           Era           @relation(fields: [eraId], references: [id], onDelete: Cascade)
+  eraId         Int
+  slug          String
+  title         String
+  dateLabel     String // text: fuzzy/BCE dates don't fit a real Date column
+  sequenceOrder Int
+  summary       String        @db.Text
+  provenanceTag ProvenanceTag
+  location      Location?     @relation(fields: [locationId], references: [id])
+  locationId    Int?
+
+  figures FigureEvent[]
+  sources EventSource[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eraId, slug])
+}
+
+model Source {
+  id         Int        @id @default(autoincrement())
+  title      String
+  author     String?
+  sourceType SourceType
+  url        String?
+  note       String?    @db.Text
+
+  figures FigureSource[]
+  events  EventSource[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FigureEvent {
+  figure      Figure        @relation(fields: [figureId], references: [id], onDelete: Cascade)
+  figureId    Int
+  event       TimelineEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId     Int
+  roleInEvent String?
+
+  @@id([figureId, eventId])
+}
+
+model FigureSource {
+  figure   Figure  @relation(fields: [figureId], references: [id], onDelete: Cascade)
+  figureId Int
+  source   Source  @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  sourceId Int
+  note     String?
+
+  @@id([figureId, sourceId])
+}
+
+model EventSource {
+  event    TimelineEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId  Int
+  source   Source        @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  sourceId Int
+  note     String?
+
+  @@id([eventId, sourceId])
+}

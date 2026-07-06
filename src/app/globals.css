@@ -1,0 +1,194 @@
+@import "tailwindcss";
+
+/*
+ * Era-engine tokens. These are the ONLY visual variables era-aware components
+ * may reference (see src/types/era.ts THEME_CSS_VARS). The root defaults below
+ * are a neutral placeholder for chrome outside any era; each /era/[slug] layout
+ * overrides every one of these on its wrapper element from that era's Mongo
+ * eraThemes document, so no component should ever hardcode a color or font.
+ */
+:root {
+  --color-bg: #f4f2ee;
+  --color-bg-raised: #ffffff;
+  --color-ink: #1c1a17;
+  --color-muted: #6b6660;
+  --color-accent: #55524c;
+  --color-rule: rgba(28, 26, 23, 0.14);
+
+  --font-display: system-ui, sans-serif;
+  --font-body: system-ui, sans-serif;
+  --font-utility: ui-monospace, monospace;
+
+  /* Era-authored ambient glow (a radial-gradient string from that era's Mongo
+     theme doc); "none" outside any era. See [data-era] below. */
+  --motif-glow: none;
+
+  /* Era-authored photographic paper texture (url(...) or none), swapped per
+     theme by the era layout. Used as the real background of cards/chapters. */
+  --motif-paper: none;
+
+  /* Era-authored full-page cover image (url(...) or none), dimmed by
+     --cover-dim so components still read on top. */
+  --motif-cover: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #171512;
+    --color-bg-raised: #201d19;
+    --color-ink: #ece8e2;
+    --color-muted: #9a958c;
+    --color-accent: #b8b2a7;
+    --color-rule: rgba(236, 232, 226, 0.14);
+  }
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/*
+ * Every era page sits on its authored cover image (e.g. an aged map), locked to
+ * the viewport (background-attachment: fixed) so a tall page reads as content
+ * scrolling over one continuous map rather than a stretched one. A theme-aware
+ * wash (--cover-dim, heavier in dark mode since the map is bright) sits over the
+ * cover so cards, chapters, and text stay legible. A faint fibrous grain rides
+ * on top for paper feel. Everything is era-agnostic: only --motif-cover /
+ * --motif-glow are authored per era.
+ */
+[data-era] {
+  /* Dimming wash over the cover; heavier in dark mode (see below) since the
+     map is bright. Only the color is a variable — the percentage is literal
+     for maximum browser support. */
+  --cover-wash: color-mix(in srgb, var(--color-bg) 70%, transparent);
+  background-color: var(--color-bg);
+  background-image:
+    var(--motif-glow),
+    repeating-linear-gradient(
+      124deg,
+      color-mix(in srgb, var(--color-ink) 40%, transparent) 0px,
+      color-mix(in srgb, var(--color-ink) 40%, transparent) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
+    linear-gradient(var(--cover-wash), var(--cover-wash)),
+    var(--motif-cover);
+  background-size: auto, auto, auto, cover;
+  background-position: center, 0 0, center, center;
+  background-repeat: no-repeat, repeat, no-repeat, no-repeat;
+  background-attachment: scroll, scroll, fixed, fixed;
+  background-blend-mode: normal, soft-light, normal, normal;
+  color: var(--color-ink);
+}
+@media (prefers-color-scheme: dark) {
+  [data-era] {
+    --cover-wash: color-mix(in srgb, var(--color-bg) 87%, transparent);
+  }
+}
+
+/*
+ * Shape system: no rounded corners, no border-lights-up-on-hover. A "card" is
+ * a flat leaf resting on the page — it lifts slightly on hover instead.
+ */
+.leaf-card {
+  display: block;
+  border: 1px solid var(--color-rule);
+  background-color: var(--color-bg-raised);
+  /* Real aged-paper photo, muted by a translucent wash of the card's own
+     ground so text stays legible. --motif-paper is "none" outside an era. */
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--color-bg-raised) 58%, transparent),
+      color-mix(in srgb, var(--color-bg-raised) 58%, transparent)
+    ),
+    var(--motif-paper);
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.leaf-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .leaf-card {
+    transition: box-shadow 0.18s ease;
+  }
+  .leaf-card:hover {
+    transform: none;
+  }
+}
+
+/*
+ * A chapter renders on a real torn-parchment sheet. Rather than fake the torn
+ * edge with clip-path, we use the actual scanned parchment as a 9-slice
+ * border-image: the burnt/torn frame stays crisp at any card height while the
+ * flat middle (fill) stretches to hold the prose. drop-shadow follows the
+ * image's alpha silhouette, so the shadow traces the torn edge, not a rectangle.
+ */
+.torn-leaf {
+  position: relative;
+  background-color: var(--color-bg-raised); /* fallback until/if the image loads */
+  border-style: solid;
+  border-color: transparent;
+  border-width: 22px 32px;
+  border-image: url("/assets/textures/parchment-scroll.webp") 60 fill stretch;
+  padding: 2.25rem clamp(1.25rem, 4vw, 3rem);
+  transform: rotate(-0.3deg);
+  filter: drop-shadow(0 9px 16px rgba(0, 0, 0, 0.32));
+  /* The parchment is always light, so remap content tokens to the on-paper set
+     — keeps prose dark-on-parchment even in dark mode. */
+  --color-ink: var(--ink-on-paper, var(--color-ink));
+  --color-muted: var(--muted-on-paper, var(--color-muted));
+  --color-accent: var(--accent-on-paper, var(--color-accent));
+  --color-rule: var(--rule-on-paper, var(--color-rule));
+  color: var(--color-ink);
+}
+
+/* Chapter prose — deliberately plain markdown styling driven by era tokens only. */
+.prose-chapter p {
+  margin: 0 0 1.1em;
+}
+.prose-chapter h2 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  margin: 1.8em 0 0.6em;
+  text-wrap: balance;
+}
+.prose-chapter h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 1.5em 0 0.5em;
+}
+.prose-chapter ul,
+.prose-chapter ol {
+  margin: 0 0 1.1em;
+  padding-left: 1.3em;
+}
+.prose-chapter li {
+  margin-bottom: 0.4em;
+}
+.prose-chapter li::marker {
+  color: var(--color-muted);
+}
+.prose-chapter strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.prose-chapter em {
+  color: var(--color-muted);
+}
+.prose-chapter blockquote {
+  border-left: 2px solid var(--color-accent);
+  padding-left: 1em;
+  margin: 1.4em 0;
+  color: var(--color-muted);
+  font-style: italic;
+}
+.prose-chapter a {
+  color: var(--color-accent);
+  text-underline-offset: 3px;
+}
