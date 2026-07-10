@@ -37,7 +37,10 @@ export const mahabharatTheme = {
     dividerStyle: "carved",
     paperLight: "/assets/textures/parchment-light.jpg",
     paperDark: "/assets/textures/parchment-dark.jpg",
-    cover: "/assets/textures/nautical-map.webp",
+    // Full-page ground: a faint, heavily-dimmed temple relief of the epic (the
+    // Chakravyuha at Halebidu) reads as ancient carved stone behind the content
+    // — era-appropriate, unlike the old placeholder sea-chart.
+    cover: "/assets/mahabharat/abhimanyu-relief.jpg",
   },
   navMetaphor: "turning a palm-leaf manuscript folio, chapter by chapter",
   heroTreatment:

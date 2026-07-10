@@ -92,7 +92,7 @@ export default async function EraLayout({
     <div data-era={slug} className="relative isolate">
       <style dangerouslySetInnerHTML={{ __html: themeCss }} />
       <EraAmbientMotifs items={motifs} />
-      <div className="relative z-10">
+      <div className="relative z-10 overflow-x-clip">
         <EraNav items={navItems} />
         <main className="mx-auto max-w-5xl px-6 py-12">{children}</main>
       </div>

@@ -18,6 +18,10 @@
   --font-display: system-ui, sans-serif;
   --font-body: system-ui, sans-serif;
   --font-utility: ui-monospace, monospace;
+  /* Devanagari face for Sanskrit shlokas. A stack of common serif Devanagari
+     fonts (bundled on macOS/Windows) with a graceful serif fallback. */
+  --font-devanagari: "Tiro Devanagari Sanskrit", "Noto Serif Devanagari",
+    "Nirmala UI", "Kohinoor Devanagari", "Mangal", "Sanskrit Text", serif;
 
   /* Era-authored ambient glow (a radial-gradient string from that era's Mongo
      theme doc); "none" outside any era. See [data-era] below. */
@@ -191,4 +195,206 @@ body {
 .prose-chapter a {
   color: var(--color-accent);
   text-underline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Landing-page atmosphere: cinematic hero, Sanskrit shloka bands, section
+ * kickers. All era-agnostic — colours come from tokens except where text sits
+ * over a dark hero image (fixed warm-light for legibility in either theme).
+ * ------------------------------------------------------------------------- */
+
+.devanagari {
+  font-family: var(--font-devanagari);
+}
+
+/* Small uppercase section label used across the landing page. */
+.era-kicker {
+  font-family: var(--font-utility);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: 0.9rem;
+}
+
+/* Full-bleed hero. Breaks out of the centered <main> with the viewport-margin
+ * trick; an ancestor sets overflow-x: clip so this never adds a scrollbar. */
+.era-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-top: -3rem; /* absorb <main>'s top padding so the hero meets the nav */
+  margin-bottom: 3.5rem;
+  min-height: min(86vh, 720px);
+  display: flex;
+  align-items: flex-end;
+}
+.era-hero__bg {
+  position: absolute;
+  inset: -3% 0 0 0;
+  z-index: -2;
+  will-change: transform;
+}
+.era-hero__bg img {
+  object-position: center 28%;
+}
+.era-hero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      to top,
+      rgba(20, 10, 3, 0.94) 0%,
+      rgba(20, 10, 3, 0.55) 40%,
+      rgba(20, 10, 3, 0.22) 72%,
+      rgba(20, 10, 3, 0.5) 100%
+    ),
+    radial-gradient(120% 82% at 18% 100%, rgba(184, 69, 31, 0.3), transparent 60%);
+}
+.era-hero__inner {
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem clamp(2.5rem, 6vw, 5rem);
+  color: #f4ead1;
+}
+.era-hero__eyebrow {
+  font-family: var(--font-utility);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.72rem;
+  color: var(--color-accent);
+  margin-bottom: 1rem;
+}
+.era-hero__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.02;
+  font-size: clamp(2.6rem, 7vw, 5.25rem);
+  color: #fbf1d6;
+  text-wrap: balance;
+  text-shadow: 0 2px 34px rgba(0, 0, 0, 0.55);
+}
+.era-hero__subtitle {
+  margin-top: 1.1rem;
+  max-width: 44ch;
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  color: rgba(244, 234, 209, 0.86);
+}
+.era-hero__verse {
+  margin-top: 2rem;
+  padding-left: 1.1rem;
+  border-left: 2px solid var(--color-accent);
+  max-width: 54ch;
+}
+.era-hero__verse-sa {
+  font-family: var(--font-devanagari);
+  font-size: clamp(1.15rem, 2.4vw, 1.7rem);
+  line-height: 1.75;
+  color: #f7e6be;
+}
+.era-hero__verse-en {
+  margin-top: 0.6rem;
+  font-style: italic;
+  color: rgba(244, 234, 209, 0.82);
+}
+.era-hero__verse-src {
+  margin-top: 0.35rem;
+  font-family: var(--font-utility);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: rgba(244, 234, 209, 0.55);
+}
+.era-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 2.2rem;
+  padding: 0.7rem 1.4rem;
+  border: 1px solid rgba(247, 230, 190, 0.5);
+  background: rgba(184, 69, 31, 0.18);
+  color: #fbf1d6;
+  font-family: var(--font-utility);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background-color 0.18s ease, transform 0.18s ease;
+}
+.era-hero__cta:hover {
+  background: rgba(184, 69, 31, 0.42);
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .era-hero__cta:hover {
+    transform: none;
+  }
+}
+
+/* A full-width verse band, ruled top and bottom. */
+.verse-panel {
+  border-block: 1px solid var(--color-rule);
+  padding: clamp(2.5rem, 6vw, 4rem) 1.5rem;
+}
+
+/* Sanskrit verse block (Shloka component). */
+.shloka {
+  max-width: 62ch;
+}
+.shloka--center {
+  margin-inline: auto;
+  text-align: center;
+}
+.shloka__line {
+  display: block;
+}
+.shloka__sa {
+  font-family: var(--font-devanagari);
+  font-size: clamp(1.3rem, 2.8vw, 1.95rem);
+  line-height: 1.8;
+  color: var(--color-ink);
+}
+.shloka__iast {
+  margin-top: 0.7rem;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+.shloka__en {
+  margin-top: 0.95rem;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  color: var(--color-ink);
+  opacity: 0.92;
+  border-left: 2px solid var(--color-accent);
+  padding-left: 1em;
+}
+.shloka--center .shloka__en {
+  border-left: 0;
+  padding-left: 0;
+  max-width: 60ch;
+  margin-inline: auto;
+}
+.shloka__src {
+  margin-top: 0.8rem;
+  font-family: var(--font-utility);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+/* Legibility scrim under a figure portrait's name. */
+.portrait-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(20, 10, 3, 0.88) 0%,
+    rgba(20, 10, 3, 0.12) 52%,
+    transparent 100%
+  );
 }
